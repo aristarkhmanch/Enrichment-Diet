@@ -9,6 +9,7 @@
 import express from "express";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { readFileSync } from "node:fs";
 import { CANDIDATES, candidateById, GROUND_TRUTH_WEIGHTS } from "./candidates.js";
 import { SERVICES } from "./services.js";
 import { runDiet, PASS_THRESHOLD } from "./diet.js";
@@ -21,6 +22,7 @@ const PORT = process.env.PORT || 3000;
 // Hosted deployments (no Zero CLI / funded wallet) force demo mode: every run
 // replays the recorded real transactions in data/cache.
 const FORCE_REPLAY = process.env.FORCE_REPLAY === "1";
+const VERSION = JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf8")).version;
 
 app.use(express.static(join(__dirname, "..", "public")));
 
@@ -42,7 +44,7 @@ app.get("/api/candidates", (_req, res) => {
   res.json({
     candidates: CANDIDATES.map((c) => ({ id: c.id, name: c.name, company: c.company_name })),
     services: SERVICES.map((s) => ({ id: s.id, name: s.name, price: s.price, category: s.category })),
-    config: { passThreshold: PASS_THRESHOLD, gateThreshold: GATE_THRESHOLD, grader, rubric: GROUND_TRUTH_WEIGHTS, forceReplay: FORCE_REPLAY },
+    config: { passThreshold: PASS_THRESHOLD, gateThreshold: GATE_THRESHOLD, grader, rubric: GROUND_TRUTH_WEIGHTS, forceReplay: FORCE_REPLAY, version: VERSION },
   });
 });
 

@@ -116,6 +116,9 @@ async function akashGrade(profile, groundTruth) {
 
   const res = await fetch(`${AKASH_BASE}/chat/completions`, {
     method: "POST",
+    // Hard cap per grading call: AkashML latency spikes under load, and one slow
+    // inference must not stall the whole diet round — timeout → local fallback.
+    signal: AbortSignal.timeout(Number(process.env.AKASH_TIMEOUT_MS || 8000)),
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${AKASH_KEY}` },
     body: JSON.stringify({
       model: AKASH_MODEL,

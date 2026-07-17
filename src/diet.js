@@ -14,6 +14,11 @@ import { grade, grader } from "./grade.js";
 
 export const PASS_THRESHOLD = Number(process.env.PASS_THRESHOLD ?? 90);
 
+// Cross-run grade cache for replay mode (data is immutable there); keyed by
+// candidate + grader backend + service subset. Only successful Akash grades are
+// stored so a degraded fallback grade never sticks.
+const GLOBAL_GRADE_MEMO = new Map();
+
 function assemble(cacheEntries) {
   // Merge extracted fields from a set of service results into one profile.
   // Earlier (more authoritative) services win on conflict; news/funding blobs
@@ -70,14 +75,20 @@ export async function runDiet(candidate, emit = () => {}, opts = {}) {
   );
 
   // Memoize grades by service-set so repeated subsets aren't re-graded.
+  // In replay mode the underlying data never changes, so grades are ALSO cached
+  // across runs (module-level) — a rehearsal run makes the demo run instant and
+  // immune to inference-latency spikes. Live runs always grade fresh.
   const gradeMemo = new Map();
+  const globalKey = (key) => `${candidate.id}|${grader.backend}|${key}`;
   const evaluate = async (svcIds) => {
     const key = [...svcIds].sort().join(",");
     if (gradeMemo.has(key)) return gradeMemo.get(key);
+    if (replay && GLOBAL_GRADE_MEMO.has(globalKey(key))) return GLOBAL_GRADE_MEMO.get(globalKey(key));
     const profile = assemble(svcIds.map((id) => cache[id]));
     const g = await grade(profile, candidate.groundTruth);
     const out = { ...g, profile, cost: totalCost(svcIds, priceOf), services: [...svcIds] };
     gradeMemo.set(key, out);
+    if (replay && g.backend === "akash") GLOBAL_GRADE_MEMO.set(globalKey(key), out);
     return out;
   };
 

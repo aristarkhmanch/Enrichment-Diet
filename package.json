@@ -1,6 +1,6 @@
 {
   "name": "enrichment-diet",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Autonomous agent that minimizes which paid web services an enrichment agent needs — converging on the few that matter, with a real-dollar demo. Zero + Akash + Pomerium.",
   "type": "module",
   "scripts": {
