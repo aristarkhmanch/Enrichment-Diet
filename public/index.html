@@ -84,6 +84,14 @@
   .pill.fail { background: var(--red-soft); color: var(--red); }
   .pill.idle { background: var(--bg); color: var(--ink3); }
   .qnote { color: var(--ink2); font-size: 13px; }
+  .rubric { margin-top: 4px; }
+  .rubric summary { color: var(--blue); font-size: 12.5px; font-weight: 600; cursor: pointer; list-style: none; }
+  .rubric summary::before { content: '▸ '; }
+  .rubric[open] summary::before { content: '▾ '; }
+  .rubric-intro { color: var(--ink2); font-size: 12.5px; line-height: 1.5; margin: 8px 0; }
+  .rubric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 16px; font-size: 12.5px; }
+  .rubric-grid .ri { display: flex; justify-content: space-between; gap: 8px; color: var(--ink2); padding: 2px 0; }
+  .rubric-grid .ri b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
   .cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; }
   .svc { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; margin-bottom: 8px;
@@ -185,6 +193,12 @@
         <span class="pill idle" id="light">waiting</span>
       </div>
       <div class="qnote" id="qnote"></div>
+      <details class="rubric">
+        <summary>How scoring works</summary>
+        <p class="rubric-intro">An open Llama model on Akash reads everything the services returned — including news
+        and bios — and awards each fact a 0–100% credit against known-correct answers. Credits × points = the score.</p>
+        <div class="rubric-grid" id="rubricGrid"></div>
+      </details>
     </div>
   </div>
 
@@ -216,12 +230,21 @@ const ICONS = { github: '🧑‍💻', pdl_company: '🏢', serper_news: '📰',
 let META = null, live = false, selected = null, es = null, auditN = 0, fromCost = 0;
 
 const CHIP_ORDER = ['rocha', 'cramer', 'masad', 'copplestone', 'rauch'];
+const RUBRIC_LABELS = {
+  name: 'Correct name', company_name: 'Current company', company_domain: 'Company website',
+  github_username: 'GitHub identity', title_seniority: 'Role & seniority', hq_city: 'HQ location',
+  company_industry: 'Industry', company_size_bucket: 'Company size', company_type: 'Public / private',
+  vc_backed: 'VC funding status', recent_activity: 'Recent news presence',
+};
 async function boot() {
   META = await (await fetch('/api/candidates')).json();
   $('#qval').value = META.config.passThreshold;
   const ordered = [...META.candidates].sort((a, b) => CHIP_ORDER.indexOf(a.id) - CHIP_ORDER.indexOf(b.id));
   $('#chips').innerHTML = ordered.map(c =>
     `<button class="chip" data-id="${c.id}" data-name="${c.name}" onclick="pick('${c.id}')"><b>${c.name}</b> — ${c.company}</button>`).join('');
+  const rub = Object.entries(META.config.rubric || {}).sort((a, b) => b[1] - a[1]);
+  $('#rubricGrid').innerHTML = rub.map(([k, w]) =>
+    `<div class="ri"><span>${RUBRIC_LABELS[k] || k}</span><b>${w} pts</b></div>`).join('');
 }
 function pick(id) {
   selected = META.candidates.find(c => c.id === id);

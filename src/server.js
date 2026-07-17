@@ -9,7 +9,7 @@
 import express from "express";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { CANDIDATES, candidateById } from "./candidates.js";
+import { CANDIDATES, candidateById, GROUND_TRUTH_WEIGHTS } from "./candidates.js";
 import { SERVICES } from "./services.js";
 import { runDiet, PASS_THRESHOLD } from "./diet.js";
 import { grader } from "./grade.js";
@@ -39,7 +39,7 @@ app.get("/api/candidates", (_req, res) => {
   res.json({
     candidates: CANDIDATES.map((c) => ({ id: c.id, name: c.name, company: c.company_name })),
     services: SERVICES.map((s) => ({ id: s.id, name: s.name, price: s.price, category: s.category })),
-    config: { passThreshold: PASS_THRESHOLD, gateThreshold: GATE_THRESHOLD, grader },
+    config: { passThreshold: PASS_THRESHOLD, gateThreshold: GATE_THRESHOLD, grader, rubric: GROUND_TRUTH_WEIGHTS },
   });
 });
 
