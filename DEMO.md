@@ -1,5 +1,8 @@
 # Demo + Submission Guide
 
+**Hosted demo (on Akash):** https://s1mshqn379c2tb3qoi3bbuc26o.ingress.jjozzietech.com.au
+(demo mode only — replays recorded real transactions; grading runs live on AkashML. dseq `1784326588502` on provider `akash1sevd2ymtty3dpq9ycxgkhuzzk4fe6mchqdwd4e`. For the recorded 3-min demo, prefer localhost:8000 — it has the real Pomerium proxy in front.)
+
 ## Preflight (run before recording)
 
 ```bash

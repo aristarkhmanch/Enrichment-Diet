@@ -2,7 +2,9 @@
 
 **An autonomous agent that builds a recruiting candidate profile by *buying* data from live services it discovers on Zero — then diets itself down to the few services that actually matter, cutting cost 60–75% with no human in the loop.**
 
-Built at the Loop Engineering Hackathon (tokens&, July 2026). Sponsors used: **Zero.xyz** (marketplace + wallet + micropayments), **Akash** (open-model grading inference), **Pomerium** (identity-aware proxy in front of every purchase). Domain: recruiting (Metaview / Fillmore track).
+Built at the Loop Engineering Hackathon (tokens&, July 2026). Sponsors used: **Zero.xyz** (marketplace + wallet + micropayments), **Akash** (open-model grading inference **and hosting** — this app runs on the Akash Supercloud), **Pomerium** (identity-aware proxy in front of every purchase). Domain: recruiting (Metaview / Fillmore track).
+
+**Live demo (hosted on Akash):** https://s1mshqn379c2tb3qoi3bbuc26o.ingress.jjozzietech.com.au — type "Zeno Rocha", hit run. The hosted instance replays real recorded transactions (demo mode); the full live-spend + Pomerium-proxy experience runs locally per the instructions below.
 
 ---
 
