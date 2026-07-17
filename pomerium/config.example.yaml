@@ -1,0 +1,33 @@
+# Pomerium — identity-aware proxy securing the Enrichment Diet agent's runtime.
+# Every request to the agent (UI, diet API, and each purchase authorization) is
+# authorized by Pomerium and written to its access log = the governance audit trail.
+insecure_server: true
+address: ":8000"
+shared_secret: "__GENERATE_ME__"
+cookie_secret: "__GENERATE_ME__"
+
+routes:
+  # LOCKDOWN route: over-threshold ("elevated") purchases are routed here when the
+  # policy is in lockdown. Pomerium DENIES → 403, blocking the spend at the proxy.
+  - from: http://localhost:8000
+    prefix: /pomerium-authz/denied
+    to: http://localhost:3000
+    policy:
+      - deny:
+          and:
+            - http_path:
+                is: /pomerium-authz/denied
+
+  # STANDARD authorization checkpoint: Pomerium authorizes + logs, then proxies
+  # to the agent's upstream, which returns the spend decision.
+  - from: http://localhost:8000
+    prefix: /pomerium-authz/
+    to: http://localhost:3000
+    allow_public_unauthenticated_access: true
+    pass_identity_headers: true
+
+  # The agent control plane (UI + diet API) behind the proxy.
+  - from: http://localhost:8000
+    to: http://localhost:3000
+    allow_public_unauthenticated_access: true
+    preserve_host_header: true

@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Enrichment Diet</title>
+<style>
+  :root {
+    --bg: #0a0b0f; --panel: #14161d; --panel2: #1b1e27; --line: #262a36;
+    --ink: #f4f6fb; --mut: #8b93a7; --dim: #5c6373;
+    --green: #22e08a; --green-dim: #0e5a3a; --amber: #ffb020; --red: #ff5470;
+    --blue: #4f8cff; --zero: #b98bff;
+    --mono: ui-monospace, "SF Mono", "Roboto Mono", Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); }
+  body { padding: 22px 26px 40px; min-height: 100vh; }
+  a { color: inherit; }
+  .wrap { max-width: 1280px; margin: 0 auto; }
+
+  header { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 20px; }
+  .brand { display: flex; align-items: baseline; gap: 14px; }
+  .brand h1 { font-size: 26px; letter-spacing: -0.02em; margin: 0; font-weight: 800; }
+  .brand .tag { color: var(--mut); font-size: 13px; max-width: 520px; }
+  .badges { display: flex; gap: 8px; }
+  .badge { font: 600 11px/1 var(--mono); padding: 6px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--mut); letter-spacing: .04em; text-transform: uppercase; }
+  .badge.zero { color: var(--zero); border-color: #3a2d5a; }
+  .badge.akash { color: var(--red); border-color: #5a2836; }
+  .badge.pom { color: var(--blue); border-color: #223a66; }
+
+  .controls { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+  select, button { font-family: var(--sans); font-size: 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); color: var(--ink); padding: 10px 14px; }
+  button.run { background: var(--green); color: #04120b; font-weight: 800; border: none; padding: 11px 22px; cursor: pointer; letter-spacing: .01em; }
+  button.run:disabled { opacity: .5; cursor: default; }
+  .chk { color: var(--mut); font-size: 12px; display: flex; align-items: center; gap: 6px; }
+
+  .hero { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; }
+  .card .lbl { font: 600 11px/1 var(--mono); color: var(--dim); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 10px; }
+
+  .meter { position: relative; }
+  .meter .val { font: 800 84px/0.9 var(--mono); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .meter .val .cur { color: var(--green); }
+  .meter .sub { margin-top: 12px; display: flex; align-items: center; gap: 16px; color: var(--mut); font-size: 14px; }
+  .meter .from { font: 600 15px/1 var(--mono); color: var(--dim); text-decoration: line-through; }
+  .meter .delta { font: 800 20px/1 var(--mono); color: var(--green); }
+  .bar { height: 10px; border-radius: 999px; background: #23303a; margin-top: 16px; overflow: hidden; }
+  .bar > div { height: 100%; width: 100%; background: linear-gradient(90deg, var(--green), #7af0b6); transition: width .9s cubic-bezier(.2,.7,.2,1); }
+
+  .status { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+  .light { width: 118px; height: 118px; border-radius: 50%; display: grid; place-items: center; font: 800 26px/1 var(--sans); letter-spacing: .06em;
+    background: radial-gradient(circle at 50% 35%, #12351f, #0b1712); color: var(--green); border: 2px solid var(--green-dim); box-shadow: 0 0 0 0 rgba(34,224,138,0); transition: all .4s; }
+  .light.pass { box-shadow: 0 0 44px 6px rgba(34,224,138,.35); border-color: var(--green); }
+  .light.fail { color: var(--red); border-color: #5a2836; box-shadow: 0 0 30px 2px rgba(255,84,112,.25); background: radial-gradient(circle at 50% 35%, #35121c, #170b0e); }
+  .light.idle { color: var(--dim); border-color: var(--line); background: var(--panel2); box-shadow: none; }
+  .score { font: 800 40px/1 var(--mono); font-variant-numeric: tabular-nums; }
+  .score small { font: 600 15px/1 var(--mono); color: var(--mut); }
+  .scoreLbl { color: var(--dim); font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+
+  .grid2 { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; }
+  .svc { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 9px; background: var(--panel2); transition: all .35s; }
+  .svc .nm { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 9px; }
+  .svc .cat { grid-column: 1; color: var(--dim); font: 500 11px/1 var(--mono); letter-spacing: .04em; }
+  .svc .pr { font: 700 15px/1 var(--mono); color: var(--mut); font-variant-numeric: tabular-nums; text-align: right; }
+  .svc .st { grid-column: 2; text-align: right; font: 600 11px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--dim); flex: none; }
+  .svc.calling { border-color: var(--amber); } .svc.calling .dot { background: var(--amber); animation: pulse 1s infinite; }
+  .svc.active { border-color: var(--green-dim); background: #10231a; } .svc.active .dot { background: var(--green); }
+  .svc.active .st { color: var(--green); }
+  .svc.dropped { opacity: .42; } .svc.dropped .nm { text-decoration: line-through; } .svc.dropped .dot { background: var(--dim); }
+  .svc.dropped .st { color: var(--red); }
+  .svc.failed { opacity: .5; } .svc.failed .dot { background: var(--red); } .svc.failed .st { color: var(--red); }
+  .svc .gate { font: 600 10px/1 var(--mono); color: var(--amber); border: 1px solid #5a4413; border-radius: 6px; padding: 3px 6px; letter-spacing: .04em; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(.7);} }
+
+  .log { height: 300px; overflow-y: auto; font: 500 12.5px/1.55 var(--mono); }
+  .log .ln { padding: 3px 0; border-bottom: 1px solid #1b1e27; color: var(--mut); }
+  .log .ln b { color: var(--ink); }
+  .log .ln.act { color: var(--green); } .log .ln.drop { color: var(--amber); } .log .ln.pay { color: var(--zero); }
+  .log .ln.head { color: var(--blue); font-weight: 700; margin-top: 6px; }
+
+  .audit { height: 300px; overflow-y: auto; font: 500 12px/1.5 var(--mono); }
+  .audit .row { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; padding: 7px 0; border-bottom: 1px solid #1b1e27; align-items: center; }
+  .audit .seq { color: var(--dim); } .audit .who { color: var(--ink); }
+  .audit .allow { color: var(--green); } .audit .gated { color: var(--amber); } .audit .deny { color: var(--red); }
+  .foot { margin-top: 14px; color: var(--dim); font: 500 12px/1.5 var(--mono); display: flex; gap: 18px; flex-wrap: wrap; }
+  .kv b { color: var(--mut); }
+  @media (max-width: 940px) { .hero, .grid2 { grid-template-columns: 1fr; } .meter .val { font-size: 62px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>Enrichment&nbsp;Diet</h1>
+      <div class="tag">An agent buys data from live services, then diets itself down to the few that actually matter — real dollars, no human in the loop.</div>
+    </div>
+    <div class="badges">
+      <span class="badge zero">Zero · wallet + meter</span>
+      <span class="badge akash">Akash · grading</span>
+      <span class="badge pom">Pomerium · gate</span>
+    </div>
+  </header>
+
+  <div class="controls">
+    <select id="cand"></select>
+    <button class="run" id="run">▶ Run diet</button>
+    <label class="chk"><input type="checkbox" id="pace" checked /> cinematic pacing</label>
+    <label class="chk"><input type="checkbox" id="replay" /> replay (no payment)</label>
+    <span class="chk" id="graderInfo"></span>
+  </div>
+
+  <div class="hero">
+    <div class="card meter">
+      <div class="lbl">Cost per candidate · live from Zero wallet</div>
+      <div class="val">$<span class="cur" id="mCur">0.000</span></div>
+      <div class="sub">
+        <span>from <span class="from" id="mFrom">$0.000</span></span>
+        <span class="delta" id="mDelta">–0%</span>
+        <span id="mNsvc"></span>
+      </div>
+      <div class="bar"><div id="mBar"></div></div>
+    </div>
+    <div class="card status">
+      <div class="scoreLbl">Profile quality vs ground truth</div>
+      <div class="score" id="score">—<small>/100</small></div>
+      <div class="light idle" id="light">IDLE</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="lbl">Services · discovered &amp; called on Zero</div>
+      <div id="svcs"></div>
+    </div>
+    <div class="card">
+      <div class="lbl">Agent loop</div>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="lbl">Pomerium governance · audit trail of every purchase</div>
+    <div class="audit" id="audit"></div>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const money = (n) => Number(n).toFixed(3);
+let META = null, svcState = {}, auditSeq = 0;
+
+async function boot() {
+  META = await (await fetch('/api/candidates')).json();
+  const sel = $('#cand');
+  sel.innerHTML = META.candidates.map(c => `<option value="${c.id}">${c.name} · ${c.company}</option>`).join('');
+  $('#graderInfo').innerHTML = `grader: <b style="color:var(--red)">${META.config.grader.backend}</b> · PASS ≥ ${META.config.passThreshold} · gate &gt; $${META.config.gateThreshold}`;
+  renderServices();
+}
+
+function renderServices() {
+  svcState = {};
+  $('#svcs').innerHTML = META.services.map(s => {
+    svcState[s.id] = 'idle';
+    return `<div class="svc" id="svc-${s.id}" data-price="${s.price}">
+      <div class="nm"><span class="dot"></span>${s.name}</div>
+      <div class="pr">$${money(s.price)}</div>
+      <div class="cat">${s.category}</div>
+      <div class="st" id="st-${s.id}">idle</div>
+    </div>`;
+  }).join('');
+}
+function setSvc(id, cls, statusText, extra) {
+  const el = $('#svc-'+id); if (!el) return;
+  el.className = 'svc ' + cls;
+  $('#st-'+id).textContent = statusText;
+  if (extra) $('#svc-'+id+' .nm').insertAdjacentHTML('beforeend', extra);
+}
+
+function logLine(html, cls='') { const l=$('#log'); l.insertAdjacentHTML('beforeend', `<div class="ln ${cls}">${html}</div>`); l.scrollTop=l.scrollHeight; }
+function auditRow(rec) {
+  const cls = rec.decision==='allow' ? 'allow' : (rec.decision==='deny'?'deny':'gated');
+  const label = rec.decision==='allow'?'ALLOW':(rec.decision==='deny'?'DENY 403':'GATE→ELEVATED');
+  const via = rec.via==='pomerium' ? `pomerium ${rec.pomeriumStatus||''}` : (rec.via||'in-process');
+  $('#audit').insertAdjacentHTML('beforeend',
+    `<div class="row"><span class="seq">#${String(++auditSeq).padStart(2,'0')}</span>
+     <span class="who">${rec.serviceName} · $${money(rec.price)} <span style="color:var(--dim)">· ${via}</span></span>
+     <span class="${cls}">${label}</span></div>`);
+  $('#audit').scrollTop = $('#audit').scrollHeight;
+}
+
+// animated meter tween
+let mAnim;
+function setMeter(cur, from) {
+  const bar = from>0 ? Math.max(6, (cur/from)*100) : 100;
+  $('#mBar').style.width = bar+'%';
+  const start = parseFloat($('#mCur').textContent)||cur, t0=performance.now(), dur=800;
+  cancelAnimationFrame(mAnim);
+  (function step(t){ const k=Math.min(1,(t-t0)/dur); const v=start+(cur-start)*k;
+    $('#mCur').textContent = money(v); if(k<1) mAnim=requestAnimationFrame(step); })(t0);
+  if (from>0) { $('#mFrom').textContent = '$'+money(from); const pct=Math.round((1-cur/from)*100); $('#mDelta').textContent = '–'+pct+'%'; }
+}
+function setPass(score, pass, started=true) {
+  $('#score').innerHTML = (score==null?'—':score) + '<small>/100</small>';
+  const l=$('#light');
+  if (!started) { l.className='light idle'; l.textContent='IDLE'; return; }
+  l.className = 'light ' + (pass?'pass':'fail'); l.textContent = pass?'PASS':'FAIL';
+}
+
+let es;
+function run() {
+  if (es) es.close();
+  const cand = $('#cand').value, pace = $('#pace').checked?1:0, replay=$('#replay').checked?1:0;
+  $('#run').disabled = true; $('#log').innerHTML=''; $('#audit').innerHTML=''; auditSeq=0;
+  renderServices(); setPass(null,false,false); $('#mCur').textContent='0.000'; $('#mFrom').textContent='$0.000'; $('#mDelta').textContent='–0%'; $('#mBar').style.width='100%';
+  let fromCost=0;
+  es = new EventSource(`/api/run?candidate=${cand}&pace=${pace}&replay=${replay}`);
+  es.onmessage = (m) => {
+    const e = JSON.parse(m.data);
+    switch(e.type) {
+      case 'start': logLine(`<b>▸ ${e.candidate.name}</b> @ ${e.candidate.company} — target score ≥ ${e.threshold}`,'head'); break;
+      case 'phase': logLine(`— ${e.note} —`,'head'); break;
+      case 'call:start': setSvc(e.service,'calling','calling…'); logLine(`calling <b>${e.name}</b> ($${money(e.price)})…`); break;
+      case 'call:done':
+        auditRow({serviceName:e.name, price:META.services.find(s=>s.id===e.service).price, decision:e.decision||(e.gated?'allow-elevated':'allow'), via:e.via, pomeriumStatus:e.pomeriumStatus});
+        if (e.blocked) { setSvc(e.service,'dropped','⛔ blocked by Pomerium'); logLine(`⛔ <b>${e.name}</b> DENIED by Pomerium (HTTP ${e.pomeriumStatus})`,'drop'); }
+        else if (e.ok) { setSvc(e.service,'active','paid '+ '$'+money(e.cost), e.gated?' <span class="gate">GATED</span>':'');
+          logLine(`paid <b>$${money(e.cost)}</b> · ${e.latencyMs}ms · ${e.fields} fields${e.txHash?' · tx '+e.txHash.slice(0,10)+'…':''}`,'pay'); }
+        else { setSvc(e.service,'failed','no data'); logLine(`${e.name}: no match`,''); }
+        break;
+      case 'baseline':
+        fromCost = e.cost; setMeter(e.cost, e.cost); setPass(e.score, e.pass);
+        $('#mNsvc').textContent = `· ${e.services.length} services active`;
+        logLine(`<b>baseline:</b> ${e.services.length} services · score <b>${e.score}</b> · $${money(e.cost)} · ${e.pass?'PASS':'FAIL'}`,'act');
+        break;
+      case 'trial':
+        logLine(`try drop ${e.dropName} → score ${e.score} · $${money(e.cost)} · ${e.removable?'<b>removable</b>':'load-bearing'}`, e.removable?'':'');
+        break;
+      case 'drop':
+        setSvc(e.dropped,'dropped','✂ dropped · saved $'+money(e.saved));
+        setMeter(e.cost, fromCost); setPass(e.score, e.pass);
+        $('#mNsvc').textContent = `· ${e.services.length} services active`;
+        logLine(`✂ <b>DROP ${e.droppedName}</b> — saved $${money(e.saved)} · ${e.services.length} left · score ${e.score} · PASS holds`,'drop');
+        break;
+      case 'converged': logLine(`⚑ ${e.note}`,'head'); break;
+      case 'result':
+        setMeter(e.finalCost, e.baselineCost); setPass(e.finalScore, e.pass);
+        logLine(`<b>RESULT:</b> ${e.baselineServices.length}→${e.finalServices.length} services · $${money(e.baselineCost)}→$${money(e.finalCost)} · <b>${e.savedPct}% cheaper</b> · PASS ${e.pass?'GREEN ✓':'RED ✗'}`,'act');
+        renderFoot(e);
+        break;
+      case 'error': logLine('error: '+e.error,'drop'); break;
+      case 'end': $('#run').disabled=false; es.close(); break;
+    }
+  };
+  es.onerror = () => { $('#run').disabled=false; };
+}
+function renderFoot(e) {
+  $('#foot').innerHTML = [
+    `<span class="kv"><b>survivors:</b> ${e.finalNames.join(', ')}</span>`,
+    `<span class="kv"><b>saved:</b> $${money(e.saved)}/candidate (${e.savedPct}%)</span>`,
+    `<span class="kv"><b>grader:</b> ${e.grader.backend} (${e.grader.model})</span>`,
+  ].join('');
+}
+$('#run').onclick = run;
+boot();
+</script>
+</body>
+</html>

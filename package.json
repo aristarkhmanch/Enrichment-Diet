@@ -1,0 +1,13 @@
+{
+  "name": "enrichment-diet",
+  "version": "0.1.0",
+  "description": "Autonomous agent that minimizes which paid web services an enrichment agent needs — converging on the few that matter, with a real-dollar demo. Zero + Akash + Pomerium.",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "diet": "node --env-file-if-exists=.env run.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
