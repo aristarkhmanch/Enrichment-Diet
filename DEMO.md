@@ -13,17 +13,36 @@ open http://localhost:8000                     # ALWAYS open via :8000 (through 
 - Best hero candidate: **Zeno Rocha / Resend** (67–77% cut). Backups: **David Cramer / Sentry** (66%), Masad/Copplestone (19%, "the funding call survives" story).
 - **Guillermo Rauch is the live-run candidate:** his cache was spent down during build, so if you get wallet credits (Zero booth / `zero wallet fund`), switch to live spend and run Rauch — fresh USDC payments settle on camera and his cache rebuilds automatically.
 
-## 3-minute demo script
+## 3-minute demo script (Aristarkh's voice)
 
-**(0:00–0:25) The problem.** "Agents that enrich people-data hit every paid API they can find, just in case. Nobody knows which calls actually mattered, so teams pay for data they never needed. Agent spend is now a board-level line item — and it's mostly waste. Enrichment Diet does the opposite of 'call more.'"
+**(0:00 — hook, home screen visible)**
+"Hi, I'm Aristarkh. I work at a startup, and we're hiring a developer. It's always the same workflow: you meet someone at a hackathon, you exchange LinkedIns, and you ask an AI agent — is this person a good fit for us?
 
-**(0:25–1:10) Acquire — real dollars.** Pick Rauch, hit **Run diet**. "It discovered six enrichment services on Zero and is calling each one now — real USDC settling on Base. Watch the agent log: each payment has a transaction hash. This isn't estimated tokens, it's real money." Point at the meter: **$0.41**, PASS light green, score ~97.
+And on max effort, the agent buys *everything*. Every people-data API it can find, just in case. Nobody knows which of those paid calls actually mattered. You only need specific data for the specific task — the rest is waste.
 
-**(1:10–1:35) Governance — Pomerium.** Point at the audit panel. "Every purchase went through a real Pomerium proxy that authorized and logged it — that's the audit trail. The $0.25 funding call tripped the policy and is flagged GATE→ELEVATED." (Optional: "In lockdown, Pomerium 403-blocks it outright — here's that run" → show `pomerium-lockdown` screenshot.)
+Enrichment Diet collects only the data that matters. And it figures out *which* data that is — autonomously."
 
-**(1:35–2:30) The diet — Akash.** "Now the loop: it drops the most expensive service and re-grades — grading runs on an open Llama-3.3-70B on Akash, and it reads the news snippets to recover facts no structured field has. Watch it drop the $0.25 funding call — PASS holds. Then AnyAPI. Then it tries the rest and they're all load-bearing." Meter falls to **$0.10**, PASS still green.
+**(0:40 — type, on screen)**
+"I type the candidate: **Zeno Rocha**. I set my quality bar — 90 and up is good for me. If you want to know who decides what 'good' means — *(unfold 'How scoring works')* — here's the rubric: eleven facts with weights, graded by an open Llama model. And I hit run."
 
-**(2:30–3:00) The payoff.** "Five services down to two. **75% cheaper**, profile still passes at 92. And it's per-candidate — for a different person the funding call is the *only* source of industry data, so the diet keeps it. This is the standard step every team should run before shipping a data-enrichment agent: find the few paid calls that matter, kill the rest."
+**(1:00 — acquire phase, dashboard)**
+"Right now a real agent is buying data from live services it discovered on **Zero** — real USDC micropayments; you can see the transaction hashes. The grading runs on **Meta Llama on Akash**. Left side: the services it's paying. Right side: what it's thinking.
+
+First it builds the full profile with everything: six services, 43 cents — quality 93, passes my bar."
+
+**(1:35 — the diet)**
+"Now the good part. The agent asks: can I still pass *without* this one? Watch — it drops the 25-cent funding API, quality holds. Drops the social finder — holds. It tries to drop GitHub — quality crashes, so GitHub stays.
+
+It converges on the three services that actually matter. **43 cents down to 14. Sixty-seven percent cheaper. Same result.**"
+
+**(2:10 — the economics)**
+"You pay full price a few times to calibrate — then every next candidate runs on the optimized set. *(point at banner)* At 500 candidates a month, that's **$71 instead of $216**. The agent optimized its own spending. No babysitting."
+
+**(2:30 — governance)**
+"And because an agent with a wallet is scary: every purchase went through **Pomerium** — a real identity-aware proxy in front of the agent. It authorized and logged each payment, and it flagged the expensive one. In lockdown mode it blocks it outright with a 403."
+
+**(2:50 — close)**
+"Zero for the marketplace and the wallet. Akash for the grading. Pomerium for control. Enrichment Diet — buy only the data that matters. Thanks!"
 
 ## Devpost copy
 
