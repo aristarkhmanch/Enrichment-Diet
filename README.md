@@ -90,38 +90,6 @@ Browser ──▶ Pomerium IAP (:8000) ──▶ Node app (:3000)
 
 ---
 
-## Run it
-
-```bash
-# 1. Node deps
-npm install
-
-# 2. Config — put your keys in .env (see .env for the shape)
-#    AKASH_API_KEY=...        (from akashml.com → Settings → API Keys)
-#    Zero CLI must be authenticated + funded:  zero auth whoami
-
-# 3. Start Pomerium (identity-aware proxy) in front of the app
-pomerium -config pomerium/config.yaml &
-
-# 4. Start the app
-npm start                       # serves on :3000, proxied by Pomerium on :8000
-
-# 5. Open the demo THROUGH Pomerium
-open http://localhost:8000
-```
-
-CLI (no UI):
-
-```bash
-npm run diet -- rauch           # run the diet for one candidate, printed trace
-REPLAY=1 npm run diet -- rauch  # replay cached responses (no payment)
-HARD_DENY=1 npm run diet -- rauch  # lockdown: Pomerium 403-blocks the expensive call
-```
-
-UI toggles: **cinematic pacing** (dramatic timing) · **replay (no payment)** (reuse cache).
-
----
-
 ## What makes it a real loop-engineering agent
 
 - **Autonomous, acts on live web data, no human in the loop** — it discovers and pays for services it has never seen, live.
