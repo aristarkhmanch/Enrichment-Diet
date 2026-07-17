@@ -46,16 +46,17 @@
   .go:hover { background: #1765cc; transform: scale(1.05); }
   .go:disabled { background: #c4d5f2; cursor: default; transform: none; }
 
-  .chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 22px; position: relative; }
-  .chip { border: 1px solid var(--line); background: var(--card); color: var(--ink2); border-radius: 999px; padding: 9px 16px;
-    font-size: 13.5px; cursor: pointer; transition: all .15s; }
-  .chip b { color: var(--ink); font-weight: 600; }
-  .chip:hover { border-color: #c9d4e8; box-shadow: 0 2px 10px rgba(23,32,52,.07); }
-  .chip.sel { border-color: var(--blue); background: var(--blue-soft); }
-  .chip.hide { display: none; }
-
-  .mode { position: relative; margin-top: 40px; color: var(--ink3); font-size: 12.5px; display: flex; align-items: center; gap: 8px; }
-  .mode button { border: none; background: none; color: var(--blue); font-size: 12.5px; font-weight: 600; cursor: pointer; padding: 0; }
+  .folds { position: relative; margin-top: 34px; display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(560px, 92vw); }
+  .fold { width: 100%; }
+  .fold summary { text-align: center; color: var(--ink3); font-size: 13px; font-weight: 600; cursor: pointer; list-style: none; transition: color .15s; }
+  .fold summary:hover { color: var(--ink2); }
+  .fold summary::before { content: '▸ '; }
+  .fold[open] summary::before { content: '▾ '; }
+  .fold-body { margin-top: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px;
+    font-size: 13px; color: var(--ink2); line-height: 1.55; text-align: left; }
+  .fold-body p { margin: 0 0 8px; }
+  .fold-body button { border: none; background: var(--blue-soft); color: var(--blue); font-size: 12.5px; font-weight: 600;
+    cursor: pointer; padding: 7px 13px; border-radius: 999px; }
 
   /* ---------- screen 2: run ---------- */
   #run { display: none; max-width: 1120px; margin: 0 auto; padding: 0 24px 56px; }
@@ -84,12 +85,7 @@
   .pill.fail { background: var(--red-soft); color: var(--red); }
   .pill.idle { background: var(--bg); color: var(--ink3); }
   .qnote { color: var(--ink2); font-size: 13px; }
-  .rubric { margin-top: 4px; }
-  .rubric summary { color: var(--blue); font-size: 12.5px; font-weight: 600; cursor: pointer; list-style: none; }
-  .rubric summary::before { content: '▸ '; }
-  .rubric[open] summary::before { content: '▾ '; }
-  .rubric-intro { color: var(--ink2); font-size: 12.5px; line-height: 1.5; margin: 8px 0; }
-  .rubric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 16px; font-size: 12.5px; }
+  .rubric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 16px; font-size: 12.5px; margin-top: 10px; }
   .rubric-grid .ri { display: flex; justify-content: space-between; gap: 8px; color: var(--ink2); padding: 2px 0; }
   .rubric-grid .ri b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
@@ -159,10 +155,24 @@
         <button class="go" id="go" title="Run">→</button>
       </div>
     </div>
-    <div class="chips" id="chips"></div>
-    <div class="mode">
-      <span id="modeText">Demo mode — replays real past transactions, no new spend.</span>
-      <button id="modeBtn">Switch to live spend</button>
+    <div class="folds">
+      <details class="fold">
+        <summary id="modeSummary">Demo mode — no new spend</summary>
+        <div class="fold-body">
+          <p id="modeText">Replays real past transactions — real payments, real tx hashes — without spending again.
+          Live mode makes fresh USDC payments from the Zero wallet on every call.</p>
+          <button id="modeBtn">Switch to live spend</button>
+        </div>
+      </details>
+      <details class="fold">
+        <summary>How scoring works</summary>
+        <div class="fold-body">
+          <p>An open Llama model on Akash reads everything the services returned — including news and bios —
+          and awards each fact a 0–100% credit against known-correct answers. Credits × points = the score;
+          your quality bar is what it must beat.</p>
+          <div class="rubric-grid" id="rubricGrid"></div>
+        </div>
+      </details>
     </div>
   </div>
 </div>
@@ -193,12 +203,6 @@
         <span class="pill idle" id="light">waiting</span>
       </div>
       <div class="qnote" id="qnote"></div>
-      <details class="rubric">
-        <summary>How scoring works</summary>
-        <p class="rubric-intro">An open Llama model on Akash reads everything the services returned — including news
-        and bios — and awards each fact a 0–100% credit against known-correct answers. Credits × points = the score.</p>
-        <div class="rubric-grid" id="rubricGrid"></div>
-      </details>
     </div>
   </div>
 
@@ -229,7 +233,6 @@ const ICONS = { github: '🧑‍💻', pdl_company: '🏢', serper_news: '📰',
 
 let META = null, live = false, selected = null, es = null, auditN = 0, fromCost = 0;
 
-const CHIP_ORDER = ['rocha', 'cramer', 'masad', 'copplestone', 'rauch'];
 const RUBRIC_LABELS = {
   name: 'Correct name', company_name: 'Current company', company_domain: 'Company website',
   github_username: 'GitHub identity', title_seniority: 'Role & seniority', hq_city: 'HQ location',
@@ -239,41 +242,23 @@ const RUBRIC_LABELS = {
 async function boot() {
   META = await (await fetch('/api/candidates')).json();
   $('#qval').value = META.config.passThreshold;
-  const ordered = [...META.candidates].sort((a, b) => CHIP_ORDER.indexOf(a.id) - CHIP_ORDER.indexOf(b.id));
-  $('#chips').innerHTML = ordered.map(c =>
-    `<button class="chip" data-id="${c.id}" data-name="${c.name}" onclick="pick('${c.id}')"><b>${c.name}</b> — ${c.company}</button>`).join('');
   const rub = Object.entries(META.config.rubric || {}).sort((a, b) => b[1] - a[1]);
   $('#rubricGrid').innerHTML = rub.map(([k, w]) =>
     `<div class="ri"><span>${RUBRIC_LABELS[k] || k}</span><b>${w} pts</b></div>`).join('');
 }
-function pick(id) {
-  selected = META.candidates.find(c => c.id === id);
-  $('#who').value = selected.name;
-  document.querySelectorAll('.chip').forEach(ch => ch.classList.toggle('sel', ch.dataset.id === id));
+// Resolve a typed name to a known candidate (exact match first, then contains).
+function resolve(q) {
+  q = (q || '').trim().toLowerCase();
+  if (!q) return null;
+  return META.candidates.find(c => c.name.toLowerCase() === q)
+    || META.candidates.find(c => c.name.toLowerCase().includes(q))
+    || null;
 }
-$('#who').addEventListener('input', () => {
-  const q = $('#who').value.trim().toLowerCase();
-  selected = null;
-  document.querySelectorAll('.chip').forEach(ch => {
-    const match = !q || ch.dataset.name.toLowerCase().includes(q);
-    ch.classList.toggle('hide', !match);
-    ch.classList.remove('sel');
-  });
-  const vis = [...document.querySelectorAll('.chip:not(.hide)')];
-  const exact = vis.find(ch => ch.dataset.name.toLowerCase() === q);
-  if (exact) pick(exact.dataset.id);
-});
-$('#who').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    if (!selected) { const first = document.querySelector('.chip:not(.hide)'); if (first) pick(first.dataset.id); }
-    run();
-  }
-});
+$('#who').addEventListener('input', () => { selected = resolve($('#who').value); });
+$('#who').addEventListener('keydown', (e) => { if (e.key === 'Enter') run(); });
 $('#modeBtn').onclick = () => {
   live = !live;
-  $('#modeText').textContent = live
-    ? 'Live mode — every call spends real USDC from the Zero wallet.'
-    : 'Demo mode — replays real past transactions, no new spend.';
+  $('#modeSummary').textContent = live ? 'Live mode — real USDC per call' : 'Demo mode — no new spend';
   $('#modeBtn').textContent = live ? 'Switch to demo mode' : 'Switch to live spend';
 };
 $('#go').onclick = run;
@@ -331,7 +316,15 @@ function renderServices() {
 function setSvc(id, cls, status) { const el = $('#svc-' + id); if (!el) return; el.className = 'svc ' + cls; $('#st-' + id).textContent = status; }
 
 function run() {
-  if (!selected) return;
+  if (!selected) selected = resolve($('#who').value);
+  if (!selected) {
+    // No profile data for that name yet — nudge without breaking the calm.
+    const pill = document.querySelector('.ask-pill');
+    pill.style.borderColor = '#e8b4b0';
+    $('#who').placeholder = 'Try “Zeno Rocha” — a candidate with data';
+    setTimeout(() => { pill.style.borderColor = ''; }, 1600);
+    return;
+  }
   const threshold = Math.min(100, Math.max(50, Number($('#qval').value) || 90));
   $('#hero').style.display = 'none'; $('#run').style.display = 'block';
   $('#runTitle').textContent = selected.name;
