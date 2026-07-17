@@ -9,9 +9,9 @@ PORT=3000 npm start &                         # app on :3000, proxied by Pomeriu
 open http://localhost:8000                     # ALWAYS open via :8000 (through Pomerium)
 ```
 
-- Grader badge should read **`grader: akash`** (top right). If it says `local`, your `.env` AKASH_API_KEY isn't loading.
-- Leave **cinematic pacing** checked. Check **replay (no payment)** — the Zero wallet is at $0 after the build, so the demo replays cached *real* transactions (real tx hashes, real amounts). To do a fresh live payment on camera, first `zero wallet fund` (~$1) and uncheck replay.
-- Best hero candidate: **Guillermo Rauch / Vercel** (clean 75% cut). Backup: **Zeno Rocha / Resend** (67%).
+- The app starts in **demo mode** (replays cached *real* transactions — real tx hashes, real amounts; no new spend). "Switch to live spend" on the home screen flips to fresh payments.
+- Best hero candidate: **Zeno Rocha / Resend** (67–77% cut). Backups: **David Cramer / Sentry** (66%), Masad/Copplestone (19%, "the funding call survives" story).
+- **Guillermo Rauch is the live-run candidate:** his cache was spent down during build, so if you get wallet credits (Zero booth / `zero wallet fund`), switch to live spend and run Rauch — fresh USDC payments settle on camera and his cache rebuilds automatically.
 
 ## 3-minute demo script
 

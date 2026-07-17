@@ -31,9 +31,12 @@ function assemble(cacheEntries) {
 const totalCost = (svcIds, priceOf) => +svcIds.reduce((s, id) => s + (priceOf[id] || 0), 0).toFixed(4);
 
 // Run the full diet for one candidate. `emit` receives streaming events.
+// opts: { replay, threshold } — threshold overrides PASS_THRESHOLD for this run
+// (the user sets their own quality bar from the UI).
 export async function runDiet(candidate, emit = () => {}, opts = {}) {
   const replay = opts.replay;
-  emit({ type: "start", candidate: { id: candidate.id, name: candidate.name, company: candidate.company_name }, threshold: PASS_THRESHOLD, grader });
+  const threshold = Number(opts.threshold) >= 50 && Number(opts.threshold) <= 100 ? Number(opts.threshold) : PASS_THRESHOLD;
+  emit({ type: "start", candidate: { id: candidate.id, name: candidate.name, company: candidate.company_name }, threshold, grader });
 
   // --- Phase 1: solve-with-all (pay each service once, cache) ---------------
   // Calls run concurrently so one slow service doesn't serialize the rest;
@@ -86,7 +89,7 @@ export async function runDiet(candidate, emit = () => {}, opts = {}) {
     services: active,
     score: baseline.score,
     cost: baseline.cost,
-    pass: baseline.score >= PASS_THRESHOLD,
+    pass: baseline.score >= threshold,
     perField: baseline.perField,
   });
 
@@ -104,7 +107,7 @@ export async function runDiet(candidate, emit = () => {}, opts = {}) {
     );
     const trials = [];
     for (const { id, t } of evaluated) {
-      const removable = t.score >= PASS_THRESHOLD;
+      const removable = t.score >= threshold;
       emit({
         type: "trial",
         step: step + 1,
@@ -140,7 +143,7 @@ export async function runDiet(candidate, emit = () => {}, opts = {}) {
       services: [...active],
       score: dropped.score,
       cost: totalCost(active, priceOf),
-      pass: dropped.score >= PASS_THRESHOLD,
+      pass: dropped.score >= threshold,
     });
   }
 
@@ -156,7 +159,7 @@ export async function runDiet(candidate, emit = () => {}, opts = {}) {
     finalScore: final.score,
     saved: +(baseline.cost - final.cost).toFixed(4),
     savedPct: baseline.cost > 0 ? Math.round((1 - final.cost / baseline.cost) * 100) : 0,
-    pass: final.score >= PASS_THRESHOLD,
+    pass: final.score >= threshold,
     history,
     grader,
   };

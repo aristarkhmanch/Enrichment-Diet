@@ -4,7 +4,7 @@
 import { candidateById, CANDIDATES } from "./src/candidates.js";
 import { runDiet } from "./src/diet.js";
 
-const id = process.argv[2] || "rauch";
+const id = process.argv[2] || "rocha";
 const candidate = candidateById(id);
 if (!candidate) {
   console.error(`Unknown candidate '${id}'. Options: ${CANDIDATES.map((c) => c.id).join(", ")}`);

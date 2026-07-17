@@ -129,7 +129,14 @@ export async function callService(service, candidate, { maxPay, replay } = {}) {
       env = null;
     }
     if (env) {
-      try { writeFileSync(cp, JSON.stringify({ env, latencyMs, savedAt: new Date().toISOString() })); } catch {}
+      // Never clobber a good cached response with a failure (e.g. an unfunded
+      // live run) — demo/replay mode depends on the last good data. Failures
+      // are cached only when no good response exists yet.
+      let existingOk = false;
+      try { existingOk = JSON.parse(readFileSync(cp, "utf8")).env?.ok === true; } catch {}
+      if (env.ok || !existingOk) {
+        try { writeFileSync(cp, JSON.stringify({ env, latencyMs, savedAt: new Date().toISOString() })); } catch {}
+      }
     }
   }
 

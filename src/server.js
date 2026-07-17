@@ -71,7 +71,7 @@ app.get("/api/run", async (req, res) => {
   };
 
   try {
-    await runDiet(candidate, send, { replay: req.query.replay === "1" });
+    await runDiet(candidate, send, { replay: req.query.replay === "1", threshold: req.query.threshold });
     await chain;
   } catch (err) {
     res.write(`data: ${JSON.stringify({ type: "error", error: String(err) })}\n\n`);
