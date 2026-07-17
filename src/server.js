@@ -18,6 +18,9 @@ import { GATE_THRESHOLD } from "./zero.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
+// Hosted deployments (no Zero CLI / funded wallet) force demo mode: every run
+// replays the recorded real transactions in data/cache.
+const FORCE_REPLAY = process.env.FORCE_REPLAY === "1";
 
 app.use(express.static(join(__dirname, "..", "public")));
 
@@ -39,7 +42,7 @@ app.get("/api/candidates", (_req, res) => {
   res.json({
     candidates: CANDIDATES.map((c) => ({ id: c.id, name: c.name, company: c.company_name })),
     services: SERVICES.map((s) => ({ id: s.id, name: s.name, price: s.price, category: s.category })),
-    config: { passThreshold: PASS_THRESHOLD, gateThreshold: GATE_THRESHOLD, grader, rubric: GROUND_TRUTH_WEIGHTS },
+    config: { passThreshold: PASS_THRESHOLD, gateThreshold: GATE_THRESHOLD, grader, rubric: GROUND_TRUTH_WEIGHTS, forceReplay: FORCE_REPLAY },
   });
 });
 
@@ -71,7 +74,7 @@ app.get("/api/run", async (req, res) => {
   };
 
   try {
-    await runDiet(candidate, send, { replay: req.query.replay === "1", threshold: req.query.threshold });
+    await runDiet(candidate, send, { replay: FORCE_REPLAY || req.query.replay === "1", threshold: req.query.threshold });
     await chain;
   } catch (err) {
     res.write(`data: ${JSON.stringify({ type: "error", error: String(err) })}\n\n`);

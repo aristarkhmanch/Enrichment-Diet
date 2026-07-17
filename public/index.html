@@ -245,6 +245,11 @@ async function boot() {
   const rub = Object.entries(META.config.rubric || {}).sort((a, b) => b[1] - a[1]);
   $('#rubricGrid').innerHTML = rub.map(([k, w]) =>
     `<div class="ri"><span>${RUBRIC_LABELS[k] || k}</span><b>${w} pts</b></div>`).join('');
+  if (META.config.forceReplay) {
+    // Hosted demo: live spend isn't available (no funded wallet in the cloud).
+    $('#modeBtn').style.display = 'none';
+    $('#modeText').textContent = 'This hosted demo replays real recorded transactions — real payments, real tx hashes — without spending again.';
+  }
 }
 // Resolve a typed name to a known candidate (exact match first, then contains).
 function resolve(q) {
@@ -315,7 +320,9 @@ function renderServices() {
 }
 function setSvc(id, cls, status) { const el = $('#svc-' + id); if (!el) return; el.className = 'svc ' + cls; $('#st-' + id).textContent = status; }
 
+let runFinished = false;
 function run() {
+  runFinished = false;
   if (!selected) selected = resolve($('#who').value);
   if (!selected) {
     // No profile data for that name yet — nudge without breaking the calm.
@@ -385,10 +392,15 @@ function run() {
         break;
       }
       case 'error': feedLine('Something went wrong: ' + e.error, ''); break;
-      case 'end': es.close(); break;
+      case 'end': runFinished = true; es.close(); break;
     }
   };
-  es.onerror = () => {};
+  // NEVER let EventSource auto-reconnect: a reconnect silently re-runs the whole
+  // diet (and in live mode would spend real money again). Close and tell the user.
+  es.onerror = () => {
+    es.close();
+    if (!runFinished) feedLine('Connection dropped — press Run to start again.', 'cut');
+  };
 }
 boot();
 </script>

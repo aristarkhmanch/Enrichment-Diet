@@ -1,0 +1,1 @@
+{"env":{"runId":null,"ok":false,"status":null,"latencyMs":659,"payment":null,"body":null,"bodyRaw":null,"error":"wallet has 0.036 USDC on Base, needs 0.1.","runTrackingSkipped":["insufficient_funds_not_recorded"]},"latencyMs":1491,"savedAt":"2026-07-17T19:36:46.785Z"}

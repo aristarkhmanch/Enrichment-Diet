@@ -10,7 +10,9 @@ import { dirname, join } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const AUDIT_LOG = join(__dirname, "..", "logs", "audit.jsonl");
-const CACHE_DIR = join(__dirname, "..", "logs", "cache");
+// Cache lives in data/ (committed) so a hosted deployment can replay the
+// recorded real transactions without a funded Zero wallet.
+const CACHE_DIR = join(__dirname, "..", "data", "cache");
 
 // REPLAY=1 reuses cached responses (no payment) — for dev iteration and rehearsal.
 export const REPLAY = process.env.REPLAY === "1";

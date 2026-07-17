@@ -31,3 +31,7 @@ routes:
     to: http://localhost:3000
     allow_public_unauthenticated_access: true
     preserve_host_header: true
+    # The diet run streams SSE for 30-60s; the default 30s route timeout would
+    # kill the stream mid-run (and EventSource would reconnect + re-run forever).
+    timeout: 0s
+    idle_timeout: 10m
